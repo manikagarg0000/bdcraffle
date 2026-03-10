@@ -72,16 +72,26 @@ export default function Home() {
     setStatus('Waiting for wallet confirmation...');
     setStatusType('info');
     try {
-  const result = await provider.signAndBroadcastInteraction({
-    to: RAFFLE_CONTRACT,
-    calldata: '14c6d469',
-    satoshis: 10000,
-  });
-  setTickets(t => t + 1);
-  const txid = result?.txid || result?.hash || JSON.stringify(result);
-  setStatus('Ticket purchased! TX: ' + String(txid).slice(0, 24) + '...');
-  setStatusType('success');
-}
+      const result = await provider.signAndBroadcastInteraction({
+        to: RAFFLE_CONTRACT,
+        calldata: '14c6d469',
+        satoshis: 10000,
+      });
+      setTickets(t => t + 1);
+      const txid = result?.txid || result?.hash || JSON.stringify(result);
+      setStatus('Ticket purchased! TX: ' + String(txid).slice(0, 24) + '...');
+      setStatusType('success');
+    } catch (e: any) {
+      if (e.code === 4001 || e.message?.includes('reject') || e.message?.includes('cancel')) {
+        setStatus('Transaction cancelled.');
+      } else {
+        setStatus(e.message || 'Transaction failed');
+      }
+      setStatusType('error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const shortAddr = (addr: string) => (addr ? addr.slice(0, 8) + '...' + addr.slice(-6) : '');
 
@@ -120,30 +130,20 @@ export default function Home() {
             { id: 'raffle', icon: '🎟️', label: 'Raffle' },
             { id: 'token', icon: '🪙', label: 'BDC Token' },
           ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setTab(item.id as any)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition ${
-                tab === item.id ? 'bg-green-500/20 text-green-400' : 'text-gray-400 hover:bg-white/5'
-              }`}
-            >
-              <span>{item.icon}</span>
-              {item.label}
+            <button key={item.id} onClick={() => setTab(item.id as any)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition ${tab === item.id ? 'bg-green-500/20 text-green-400' : 'text-gray-400 hover:bg-white/5'}`}>
+              <span>{item.icon}</span>{item.label}
             </button>
           ))}
           <div className="mt-4 pt-4 border-t border-white/10">
             <p className="text-xs text-gray-500 px-2 mb-2 uppercase tracking-wider">Links</p>
             {[
-              { label: '🔍 OP_SCAN', href: `https://opscan.org/accounts/${RAFFLE_CONTRACT}` },
+              { label: '🔍 OP_SCAN', href: `https://opscan.org/accounts/${RAFFLE_CONTRACT}?network=op_testnet` },
               { label: '💧 Faucet', href: 'https://faucet.opnet.org' },
               { label: '📄 Docs', href: 'https://docs.opnet.org' },
             ].map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                target="_blank"
-                className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1 text-sm text-gray-400 hover:bg-white/5 hover:text-white transition"
-              >
+              <a key={l.label} href={l.href} target="_blank"
+                className="flex items-center gap-3 px-3 py-2 rounded-xl mb-1 text-sm text-gray-400 hover:bg-white/5 hover:text-white transition">
                 {l.label}
               </a>
             ))}
@@ -157,23 +157,14 @@ export default function Home() {
                 <div className="w-2 h-2 rounded-full bg-green-400" />
                 <p className="text-xs text-green-400 font-mono">{shortAddr(address)}</p>
               </div>
-              <button
-                onClick={() => {
-                  setConnected(false);
-                  setAddress('');
-                  setStatus('');
-                }}
-                className="w-full text-xs bg-red-500/20 text-red-400 border border-red-500/30 py-1.5 rounded-lg hover:bg-red-500/30 transition"
-              >
+              <button onClick={() => { setConnected(false); setAddress(''); setStatus(''); }}
+                className="w-full text-xs bg-red-500/20 text-red-400 border border-red-500/30 py-1.5 rounded-lg hover:bg-red-500/30 transition">
                 Disconnect
               </button>
             </div>
           ) : (
-            <button
-              onClick={connectWallet}
-              disabled={loading}
-              className="w-full bg-green-500 hover:bg-green-400 text-black font-bold py-2 rounded-xl text-sm transition disabled:opacity-50"
-            >
+            <button onClick={connectWallet} disabled={loading}
+              className="w-full bg-green-500 hover:bg-green-400 text-black font-bold py-2 rounded-xl text-sm transition disabled:opacity-50">
               {loading ? 'Connecting...' : '🔗 Connect Wallet'}
             </button>
           )}
@@ -189,11 +180,8 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <span className="text-xs bg-orange-500/20 text-orange-300 border border-orange-500/30 px-3 py-1 rounded-full">⚡ Testnet</span>
             {!connected && (
-              <button
-                onClick={connectWallet}
-                disabled={loading}
-                className="text-sm bg-green-500 hover:bg-green-400 text-black font-bold px-4 py-1.5 rounded-full transition disabled:opacity-50"
-              >
+              <button onClick={connectWallet} disabled={loading}
+                className="text-sm bg-green-500 hover:bg-green-400 text-black font-bold px-4 py-1.5 rounded-full transition disabled:opacity-50">
                 {loading ? '...' : 'Connect Wallet'}
               </button>
             )}
@@ -225,9 +213,7 @@ export default function Home() {
 
               <div className="bg-gray-900 border border-white/10 rounded-2xl p-6">
                 <h2 className="text-xl font-bold text-white mb-1">BDC Raffle</h2>
-                <p className="text-gray-400 text-sm mb-5">
-                  Buy a ticket with tBTC. The smart contract picks a random winner who receives the full prize pool in BDC tokens.
-                </p>
+                <p className="text-gray-400 text-sm mb-5">Buy a ticket with tBTC. The smart contract picks a random winner who receives the full prize pool in BDC tokens.</p>
 
                 <div className="bg-black/30 rounded-xl p-4 mb-5">
                   <p className="text-white font-semibold text-sm mb-2">How it works</p>
@@ -239,27 +225,18 @@ export default function Home() {
                   </ol>
                 </div>
 
-                <button
-                  onClick={buyTicket}
-                  disabled={loading}
-                  className="w-full bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold py-3.5 rounded-xl transition text-base mb-3"
-                >
+                <button onClick={buyTicket} disabled={loading}
+                  className="w-full bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-bold py-3.5 rounded-xl transition text-base mb-3">
                   {loading ? '⏳ Processing...' : connected ? '🎟️ Buy Ticket (10,000 sat)' : '🔗 Connect Wallet to Buy'}
                 </button>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <a
-                    href={`https://opscan.org/accounts/${RAFFLE_CONTRACT}`}
-                    target="_blank"
-                    className="text-center bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-sm py-2 rounded-xl transition"
-                  >
+                  <a href={`https://opscan.org/accounts/${RAFFLE_CONTRACT}?network=op_testnet`} target="_blank"
+                    className="text-center bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-sm py-2 rounded-xl transition">
                     🔍 View Contract
                   </a>
-                  <a
-                    href="https://faucet.opnet.org"
-                    target="_blank"
-                    className="text-center bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-sm py-2 rounded-xl transition"
-                  >
+                  <a href="https://faucet.opnet.org" target="_blank"
+                    className="text-center bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-sm py-2 rounded-xl transition">
                     💧 Get tBTC
                   </a>
                 </div>
@@ -299,17 +276,11 @@ export default function Home() {
 
                 <div className="bg-black/20 rounded-xl p-4 mb-5">
                   <p className="text-white font-semibold text-sm mb-2">About BDC</p>
-                  <p className="text-gray-400 text-xs leading-relaxed">
-                    BangladeshCoin (BDC) is an OP_20 token deployed on Bitcoin Testnet using the OP_NET protocol. Representing Bangladesh in the
-                    Bitcoin ecosystem.
-                  </p>
+                  <p className="text-gray-400 text-xs leading-relaxed">BangladeshCoin (BDC) is an OP_20 token deployed on Bitcoin Testnet using the OP_NET protocol. Representing Bangladesh in the Bitcoin ecosystem.</p>
                 </div>
 
-                <a
-                  href={`https://opscan.org/accounts/${BDC_TOKEN}`}
-                  target="_blank"
-                  className="block w-full text-center bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-xl transition"
-                >
+                <a href={`https://opscan.org/accounts/${BDC_TOKEN}?network=op_testnet`} target="_blank"
+                  className="block w-full text-center bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-xl transition">
                   🔍 View on OP_SCAN
                 </a>
               </div>
