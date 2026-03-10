@@ -72,24 +72,16 @@ export default function Home() {
     setStatus('Waiting for wallet confirmation...');
     setStatusType('info');
     try {
-      // Open OP_NET wallet to contract page
-      window.open(
-        `https://opscan.org/accounts/${RAFFLE_CONTRACT}?network=op_testnet`,
-        '_blank'
-      );
-      setStatus('Opening OP_SCAN — connect wallet there and call buyTicket() to purchase your ticket.');
-      setStatusType('info');
-    } catch (e: any) {
-      if (e.code === 4001 || e.message?.includes('reject') || e.message?.includes('cancel')) {
-        setStatus('Transaction cancelled.');
-      } else {
-        setStatus(e.message || 'Transaction failed');
-      }
-      setStatusType('error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const result = await provider.signAndBroadcastInteraction({
+    to: RAFFLE_CONTRACT,
+    calldata: '14c6d469',
+    satoshis: 10000,
+  });
+  setTickets(t => t + 1);
+  const txid = result?.txid || result?.hash || JSON.stringify(result);
+  setStatus('Ticket purchased! TX: ' + String(txid).slice(0, 24) + '...');
+  setStatusType('success');
+}
 
   const shortAddr = (addr: string) => (addr ? addr.slice(0, 8) + '...' + addr.slice(-6) : '');
 
