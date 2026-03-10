@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@btc-vision/transaction": "^1.8.0",
+    "@btc-vision/walletconnect": "^1.10.4",
     "next": "16.1.6",
+    "opnet": "^1.8.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
