@@ -78,7 +78,7 @@ export default function Home() {
       const result = await win.opnet.signAndBroadcastInteraction({
         to: RAFFLE_CONTRACT,
         calldata: calldata,
-        satoshis: 10000,
+        satoshis: BigInt(10000),
       });
       setTickets(t => t + 1);
       setStatus('Ticket purchased! TX: ' + String(result?.txid || '').slice(0, 24) + '...');
