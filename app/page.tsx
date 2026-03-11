@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 
 const BDC_TOKEN = 'opt1sqrapk4rqwd15d77p6pqeqe2cm50x877j6vkmq3sf';
-const RAFFLE_CONTRACT = 'opt1sqrlrsan0rwjz2l5yvs8qwd6tyl05z3gdkg4hlfmz';
+const RAFFLE_CONTRACT = 'opt1sqzgjlhlvu6mzp9lewdxdzchg9yrtr554ayrm3s45';
 
 export default function Home() {
   const [tab, setTab] = useState<'raffle' | 'token'>('raffle');
