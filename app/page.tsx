@@ -72,17 +72,14 @@ export default function Home() {
     setStatus('Waiting for wallet confirmation...');
     setStatusType('info');
     try {
-      const { TransactionFactory } = await import('@btc-vision/walletconnect');
-      const factory = new TransactionFactory();
-      const hex = '14c6d469';
-const calldata = new Uint8Array(hex.match(/.{1,2}/g)!.map(b => parseInt(b, 16)));
-      const interaction = await factory.signInteraction({
-        to: RAFFLE_CONTRACT,
-        calldata,
-        satoshis: BigInt(10000),
-      });
       const win = window as any;
-      const result = await win.opnet.signAndBroadcastInteraction(interaction);
+      const hex = '14c6d469';
+      const calldata = new Uint8Array(hex.match(/.{1,2}/g)!.map(b => parseInt(b, 16)));
+      const result = await win.opnet.signAndBroadcastInteraction({
+        to: RAFFLE_CONTRACT,
+        calldata: calldata,
+        satoshis: 10000,
+      });
       setTickets(t => t + 1);
       setStatus('Ticket purchased! TX: ' + String(result?.txid || '').slice(0, 24) + '...');
       setStatusType('success');
