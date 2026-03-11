@@ -74,7 +74,8 @@ export default function Home() {
     try {
       const { TransactionFactory } = await import('@btc-vision/walletconnect');
       const factory = new TransactionFactory();
-      const calldata = Buffer.from('14c6d469', 'hex');
+      const hex = '14c6d469';
+const calldata = new Uint8Array(hex.match(/.{1,2}/g)!.map(b => parseInt(b, 16)));
       const interaction = await factory.signInteraction({
         to: RAFFLE_CONTRACT,
         calldata,
