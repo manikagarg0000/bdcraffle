@@ -72,14 +72,18 @@ export default function Home() {
     setStatus('Waiting for wallet confirmation...');
     setStatusType('info');
     try {
-      const result = await provider.signAndBroadcastInteraction({
+      const { TransactionFactory } = await import('@btc-vision/walletconnect');
+      const factory = new TransactionFactory();
+      const calldata = Buffer.from('14c6d469', 'hex');
+      const interaction = await factory.signInteraction({
         to: RAFFLE_CONTRACT,
-        calldata: '14c6d469',
-        satoshis: 10000,
+        calldata,
+        satoshis: BigInt(10000),
       });
+      const win = window as any;
+      const result = await win.opnet.signAndBroadcastInteraction(interaction);
       setTickets(t => t + 1);
-      const txid = result?.txid || result?.hash || JSON.stringify(result);
-      setStatus('Ticket purchased! TX: ' + String(txid).slice(0, 24) + '...');
+      setStatus('Ticket purchased! TX: ' + String(result?.txid || '').slice(0, 24) + '...');
       setStatusType('success');
     } catch (e: any) {
       if (e.code === 4001 || e.message?.includes('reject') || e.message?.includes('cancel')) {
